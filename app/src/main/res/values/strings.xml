@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Baking App</string>
+    <string name="error_message">Ops! Error occurred</string>
+    <string name="img_recipe_desc">Recipe</string>
+    <string name="servings_quantity">%d servings</string>
+    <string name="servings">servings</string>
 </resources>
