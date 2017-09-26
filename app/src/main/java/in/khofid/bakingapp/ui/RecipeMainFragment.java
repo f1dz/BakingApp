@@ -1,14 +1,17 @@
 package in.khofid.bakingapp.ui;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.net.URL;
 
@@ -27,16 +30,14 @@ import in.khofid.bakingapp.utilities.NetworkUtils;
 public class RecipeMainFragment extends Fragment implements RecipesAdapter.RecipesAdapterOnClickHandler{
 
     @BindView(R.id.rv_recipe_main) RecyclerView mRecyclerView;
+    @BindView(R.id.tv_error_message) TextView mTvErrorMessage;
+    @BindView(R.id.pb_loading_indicator) ProgressBar mProgress;
     public RecipesAdapter mRecipesAdapter;
-    public Recipes[] mRecipes;
+    Recipes[] mRecipes;
+
+    public static final String RECIPE_KEY = "recipe_key";
 
     public RecipeMainFragment() {
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        mRecipesAdapter.setRecipesData(mRecipes);
     }
 
     @Override
@@ -45,8 +46,8 @@ public class RecipeMainFragment extends Fragment implements RecipesAdapter.Recip
         ButterKnife.bind(this, rootView);
 
         mRecipesAdapter = new RecipesAdapter(getContext(), this);
-        mRecyclerView = rootView.findViewById(R.id.rv_recipe_main);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
+        int columnsNumber = getResources().getInteger(R.integer.columns_number);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), columnsNumber));
         mRecyclerView.setAdapter(mRecipesAdapter);
 
         loadRecipesData();
@@ -54,13 +55,34 @@ public class RecipeMainFragment extends Fragment implements RecipesAdapter.Recip
         return rootView;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArray(RECIPE_KEY, mRecipes);
+    }
+
     private void loadRecipesData(){
+        mProgress.setVisibility(View.VISIBLE);
         new FetchRecipesTask().execute();
+    }
+
+    private void showError(){
+        mTvErrorMessage.setVisibility(View.VISIBLE);
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        mProgress.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onClick(Recipes recipes) {
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
+        RecipeDetailFragment recipeDetailFragment = new RecipeDetailFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(RecipeDetailFragment.INGREDIENT_PARCEL, recipes.ingredients);
+        recipeDetailFragment.setArguments(bundle);
+        transaction.replace(R.id.fragment_container, recipeDetailFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
     private class FetchRecipesTask extends AsyncTask<String, Void, Recipes[]>{
@@ -82,8 +104,19 @@ public class RecipeMainFragment extends Fragment implements RecipesAdapter.Recip
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if(!NetworkUtils.isOnline(getContext())){
+                showError();
+                Toast.makeText(getActivity(), getString(R.string.error_no_internet), Toast.LENGTH_LONG).show();
+            }
+        }
+
+        @Override
         protected void onPostExecute(Recipes[] recipes) {
+            mProgress.setVisibility(View.INVISIBLE);
             if(null != recipes){
+                mRecipes = recipes;
                 mRecipesAdapter.setRecipesData(recipes);
             }
         }

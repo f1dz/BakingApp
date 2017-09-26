@@ -12,13 +12,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.fragment_container);
 
-//        FragmentManager fm = getSupportFragmentManager();
-//
-//        RecipeMainFragment recipeMainFragment = new RecipeMainFragment();
-//        fm.beginTransaction()
-//                .add(R.id.recipe_list_fragment, recipeMainFragment)
-//                .commit();
+        FragmentManager fm = getSupportFragmentManager();
+
+        RecipeMainFragment recipeMainFragment = new RecipeMainFragment();
+        fm.beginTransaction()
+                .replace(R.id.fragment_container, recipeMainFragment)
+                .commit();
     }
 }
