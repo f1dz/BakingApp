@@ -44,6 +44,7 @@ public class RecipeMainFragment extends Fragment implements RecipesAdapter.Recip
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_main, container, false);
         ButterKnife.bind(this, rootView);
+        getActivity().setTitle(R.string.app_name);
 
         mRecipesAdapter = new RecipesAdapter(getContext(), this);
         int columnsNumber = getResources().getInteger(R.integer.columns_number);
@@ -80,6 +81,7 @@ public class RecipeMainFragment extends Fragment implements RecipesAdapter.Recip
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList(RecipeDetailFragment.INGREDIENT_PARCEL, recipes.ingredients);
         recipeDetailFragment.setArguments(bundle);
+        getActivity().setTitle(recipes.name);
         transaction.replace(R.id.fragment_container, recipeDetailFragment);
         transaction.addToBackStack(null);
         transaction.commit();
